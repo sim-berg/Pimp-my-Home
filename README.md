@@ -108,11 +108,15 @@ A self-hosted e-commerce platform for 3D printed crystals and decorative items, 
 
 ## Deployment (Coolify)
 
+**Quick Start**: See [COOLIFY_DEPLOYMENT.md](./COOLIFY_DEPLOYMENT.md) for detailed deployment instructions.
+
 1. Create a new project in Coolify
 2. Select "Docker Compose" as the build pack
-3. Point to `docker/docker-compose.yml`
-4. Configure environment variables in Coolify dashboard
+3. Point to `docker-compose.yml` (root level)
+4. Configure environment variables in Coolify dashboard (see `.env.example`)
 5. Deploy!
+
+**Important**: Use the `docker-compose.yml` at the root level for Coolify deployments, not `docker/docker-compose.yml`.
 
 ## API Endpoints
 
