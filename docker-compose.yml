@@ -75,6 +75,14 @@ services:
     build:
       context: ./storefront
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_MEDUSA_BACKEND_URL=${SERVICE_FQDN_MEDUSA:-http://localhost:9000}
+        - NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${MEDUSA_PUBLISHABLE_KEY}
+        - NEXT_PUBLIC_BASE_URL=${SERVICE_FQDN_STOREFRONT:-http://localhost:3000}
+        - NEXT_PUBLIC_POLAR_SERVER=${POLAR_SERVER:-sandbox}
+        - NEXT_PUBLIC_TWITCH_CHANNEL=${TWITCH_CHANNEL}
+        - SERVICE_FQDN_MEDUSA=${SERVICE_FQDN_MEDUSA}
+        - SERVICE_FQDN_STOREFRONT=${SERVICE_FQDN_STOREFRONT}
     container_name: pyh_storefront
     restart: unless-stopped
     depends_on:

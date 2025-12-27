@@ -4,19 +4,39 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 
+# Install dependencies for sharp and other native modules
+RUN apk add --no-cache libc6-compat python3 make g++
+
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
+
+# Use npm install instead of npm ci to handle lockfile version mismatches
+RUN npm install --frozen-lockfile --production=false
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# Accept build args from Coolify
+ARG NEXT_PUBLIC_MEDUSA_BACKEND_URL
+ARG NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+ARG NEXT_PUBLIC_BASE_URL
+ARG NEXT_PUBLIC_POLAR_SERVER
+ARG NEXT_PUBLIC_TWITCH_CHANNEL
+ARG SERVICE_FQDN_MEDUSA
+ARG SERVICE_FQDN_STOREFRONT
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_MEDUSA_BACKEND_URL=${SERVICE_FQDN_MEDUSA:-${NEXT_PUBLIC_MEDUSA_BACKEND_URL:-http://localhost:9000}}
+ENV NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}
+ENV NEXT_PUBLIC_BASE_URL=${SERVICE_FQDN_STOREFRONT:-${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}}
+ENV NEXT_PUBLIC_POLAR_SERVER=${NEXT_PUBLIC_POLAR_SERVER:-sandbox}
+ENV NEXT_PUBLIC_TWITCH_CHANNEL=${NEXT_PUBLIC_TWITCH_CHANNEL}
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
 # Build the application
 RUN npm run build

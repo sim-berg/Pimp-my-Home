@@ -132,6 +132,17 @@ Click "Deploy" in Coolify. The deployment process will:
 
 **Solution**: Make sure you're using the `docker-compose.yml` at the root level, not `docker/docker-compose.yml`
 
+### Storefront Build Fails with "npm ci" Error
+
+**Error**: `process "/bin/sh -c npm ci" did not complete successfully: exit code: 1`
+
+**Solution**: Fixed in updated Dockerfile. The storefront now uses `npm install --frozen-lockfile` instead of `npm ci` to handle version mismatches. Also adds required build dependencies for Sharp image processing.
+
+**What Changed**:
+- Added Alpine Linux build dependencies (`libc6-compat`, `python3`, `make`, `g++`)
+- Changed from `npm ci` to `npm install --frozen-lockfile`
+- Added build args for Next.js environment variables
+
 ### Database Connection Errors
 
 **Error**: `ECONNREFUSED postgres:5432`
@@ -186,9 +197,17 @@ Click "Deploy" in Coolify. The deployment process will:
 - `POLAR_ACCESS_TOKEN`: Polar payment access token
 - `POLAR_WEBHOOK_SECRET`: Polar webhook secret
 
+### Required for Next.js Build (Storefront)
+
+These MUST be set BEFORE deploying the storefront:
+- `NEXT_PUBLIC_MEDUSA_BACKEND_URL`: Your Medusa API domain (e.g., `https://api.yourdomain.com`)
+- `NEXT_PUBLIC_BASE_URL`: Your storefront domain (e.g., `https://yourdomain.com`)
+- `NEXT_PUBLIC_POLAR_SERVER`: `sandbox` or `production`
+
 ### Required After First Deployment
 
 - `MEDUSA_PUBLISHABLE_KEY`: Generated from Medusa Admin UI
+- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`: Same as above (for frontend build)
 
 ### Optional but Recommended
 
