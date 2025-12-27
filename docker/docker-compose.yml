@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: pyh_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medusa-store
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pyh_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: pyh_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pyh_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Medusa Backend
+  medusa:
+    build:
+      context: ../medusa-server
+      dockerfile: Dockerfile
+    container_name: pyh_medusa
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/medusa-store
+      - REDIS_URL=redis://redis:6379
+      - STORE_CORS=${STORE_CORS:-http://localhost:3000}
+      - ADMIN_CORS=${ADMIN_CORS:-http://localhost:9000}
+      - AUTH_CORS=${AUTH_CORS:-http://localhost:9000}
+      - JWT_SECRET=${JWT_SECRET:-supersecret-jwt-token-change-in-production}
+      - COOKIE_SECRET=${COOKIE_SECRET:-supersecret-cookie-change-in-production}
+      - POLAR_ACCESS_TOKEN=${POLAR_ACCESS_TOKEN}
+      - POLAR_WEBHOOK_SECRET=${POLAR_WEBHOOK_SECRET}
+    volumes:
+      - medusa_uploads:/server/uploads
+    networks:
+      - pyh_network
+
+  # Next.js Storefront
+  storefront:
+    build:
+      context: ../storefront
+      dockerfile: Dockerfile
+    container_name: pyh_storefront
+    restart: unless-stopped
+    depends_on:
+      - medusa
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://medusa:9000
+      - NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${MEDUSA_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_BASE_URL=${STOREFRONT_URL:-http://localhost:3000}
+      - POLAR_ACCESS_TOKEN=${POLAR_ACCESS_TOKEN}
+      - POLAR_WEBHOOK_SECRET=${POLAR_WEBHOOK_SECRET}
+      - NEXT_PUBLIC_POLAR_SERVER=${POLAR_SERVER:-sandbox}
+      - NEXT_PUBLIC_TWITCH_CHANNEL=${TWITCH_CHANNEL}
+    networks:
+      - pyh_network
+
+  # Twitch EventSub Service (Phase 2)
+  twitch-service:
+    build:
+      context: ../twitch-service
+      dockerfile: Dockerfile
+    container_name: pyh_twitch
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - TWITCH_CLIENT_ID=${TWITCH_CLIENT_ID}
+      - TWITCH_CLIENT_SECRET=${TWITCH_CLIENT_SECRET}
+      - TWITCH_WEBHOOK_SECRET=${TWITCH_WEBHOOK_SECRET}
+      - REDIS_URL=redis://redis:6379
+      - MEDUSA_BACKEND_URL=http://medusa:9000
+    depends_on:
+      - redis
+    networks:
+      - pyh_network
+    profiles:
+      - phase2
+
+volumes:
+  postgres_data:
+  redis_data:
+  medusa_uploads:
+
+networks:
+  pyh_network:
+    driver: bridge

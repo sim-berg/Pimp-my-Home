@@ -1,0 +1,590 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --cave-darkest: #050508;
+    --cave-dark: #0a0a0f;
+    --crystal-purple: #7c3aed;
+    --crystal-teal: #14b8a6;
+    --glow-purple: #a855f7;
+    --glow-teal: #2dd4bf;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cave-darkest text-white antialiased;
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cave-deep;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-crystal-purple/40 rounded-full;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-crystal-purple/70;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-crystal-purple/40 text-white;
+  }
+}
+
+@layer components {
+  /* ========================================
+     GLASS MORPHISM
+     ======================================== */
+  .glass {
+    @apply bg-cave-medium/40 backdrop-blur-xl border border-white/10;
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-hover {
+    @apply hover:bg-cave-light/40 hover:border-crystal-purple/40 transition-all duration-500;
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-6;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(168, 85, 247, 0.1),
+      transparent
+    );
+    transition: left 0.7s ease;
+  }
+
+  .glass-card:hover::before {
+    left: 100%;
+  }
+
+  /* ========================================
+     CRYSTAL BUTTONS
+     ======================================== */
+  .btn-crystal {
+    @apply relative px-8 py-4 rounded-xl font-semibold text-white overflow-hidden transition-all duration-500;
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 50%, #7c3aed 100%);
+    background-size: 200% 200%;
+    box-shadow:
+      0 4px 15px rgba(124, 58, 237, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+    animation: btn-gradient 3s ease infinite;
+  }
+
+  @keyframes btn-gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .btn-crystal::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #a78bfa 100%);
+    background-size: 200% 200%;
+    animation: btn-gradient 3s ease infinite;
+  }
+
+  .btn-crystal::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .btn-crystal:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow:
+      0 10px 40px rgba(124, 58, 237, 0.5),
+      0 0 60px rgba(168, 85, 247, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .btn-crystal:hover::before {
+    @apply opacity-100;
+  }
+
+  .btn-crystal:hover::after {
+    opacity: 1;
+    animation: btn-shine 0.8s ease-out;
+  }
+
+  @keyframes btn-shine {
+    from { transform: rotate(0deg) scale(0); opacity: 1; }
+    to { transform: rotate(180deg) scale(2); opacity: 0; }
+  }
+
+  .btn-crystal:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+
+  .btn-crystal span {
+    @apply relative z-10;
+  }
+
+  /* Teal variant */
+  .btn-crystal-teal {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 50%, #14b8a6 100%);
+    background-size: 200% 200%;
+    box-shadow:
+      0 4px 15px rgba(20, 184, 166, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-crystal-teal::before {
+    background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #2dd4bf 100%);
+  }
+
+  .btn-crystal-teal:hover {
+    box-shadow:
+      0 10px 40px rgba(20, 184, 166, 0.5),
+      0 0 60px rgba(45, 212, 191, 0.3);
+  }
+
+  /* Outline variant */
+  .btn-crystal-outline {
+    @apply bg-transparent border-2 border-crystal-purple/50 text-crystal-purple-light;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+  }
+
+  .btn-crystal-outline:hover {
+    @apply bg-crystal-purple/10 border-crystal-purple;
+    box-shadow:
+      0 0 30px rgba(124, 58, 237, 0.3),
+      inset 0 0 20px rgba(124, 58, 237, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* ========================================
+     CARD STYLES
+     ======================================== */
+  .card-crystal {
+    @apply bg-cave-medium/60 backdrop-blur-xl rounded-2xl border border-white/5 p-6;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-crystal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), transparent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .card-crystal:hover {
+    @apply border-crystal-purple/30;
+    transform: translateY(-5px);
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.4),
+      0 0 40px rgba(124, 58, 237, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .card-crystal:hover::before {
+    opacity: 1;
+  }
+
+  /* ========================================
+     TEXT EFFECTS
+     ======================================== */
+  .text-gradient {
+    background: linear-gradient(135deg, #a78bfa 0%, #2dd4bf 50%, #f472b6 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-flow 4s ease infinite;
+  }
+
+  @keyframes gradient-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .text-gradient-static {
+    background: linear-gradient(to right, #7c3aed, #14b8a6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ========================================
+     CRYSTAL GLOW EFFECTS
+     ======================================== */
+  .crystal-glow {
+    filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.6))
+            drop-shadow(0 0 40px rgba(168, 85, 247, 0.4))
+            drop-shadow(0 0 60px rgba(168, 85, 247, 0.2));
+    animation: crystal-pulse 3s ease-in-out infinite;
+  }
+
+  .crystal-glow-teal {
+    filter: drop-shadow(0 0 20px rgba(45, 212, 191, 0.6))
+            drop-shadow(0 0 40px rgba(45, 212, 191, 0.4))
+            drop-shadow(0 0 60px rgba(45, 212, 191, 0.2));
+    animation: crystal-pulse-teal 4s ease-in-out infinite;
+  }
+
+  .crystal-glow-pink {
+    filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.6))
+            drop-shadow(0 0 40px rgba(236, 72, 153, 0.4))
+            drop-shadow(0 0 60px rgba(236, 72, 153, 0.2));
+    animation: crystal-pulse-pink 5s ease-in-out infinite;
+  }
+
+  @keyframes crystal-pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.6))
+              drop-shadow(0 0 40px rgba(168, 85, 247, 0.4))
+              drop-shadow(0 0 60px rgba(168, 85, 247, 0.2));
+    }
+    50% {
+      filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.8))
+              drop-shadow(0 0 60px rgba(168, 85, 247, 0.6))
+              drop-shadow(0 0 90px rgba(168, 85, 247, 0.4));
+    }
+  }
+
+  @keyframes crystal-pulse-teal {
+    0%, 100% {
+      filter: drop-shadow(0 0 20px rgba(45, 212, 191, 0.6))
+              drop-shadow(0 0 40px rgba(45, 212, 191, 0.4))
+              drop-shadow(0 0 60px rgba(45, 212, 191, 0.2));
+    }
+    50% {
+      filter: drop-shadow(0 0 30px rgba(45, 212, 191, 0.8))
+              drop-shadow(0 0 60px rgba(45, 212, 191, 0.6))
+              drop-shadow(0 0 90px rgba(45, 212, 191, 0.4));
+    }
+  }
+
+  @keyframes crystal-pulse-pink {
+    0%, 100% {
+      filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.6))
+              drop-shadow(0 0 40px rgba(236, 72, 153, 0.4))
+              drop-shadow(0 0 60px rgba(236, 72, 153, 0.2));
+    }
+    50% {
+      filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.8))
+              drop-shadow(0 0 60px rgba(236, 72, 153, 0.6))
+              drop-shadow(0 0 90px rgba(236, 72, 153, 0.4));
+    }
+  }
+
+  .text-glow {
+    text-shadow:
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 40px currentColor;
+  }
+
+  .text-shadow-crystal {
+    text-shadow:
+      0 0 20px rgba(168, 85, 247, 0.5),
+      0 0 40px rgba(168, 85, 247, 0.3),
+      0 0 60px rgba(168, 85, 247, 0.1);
+  }
+
+  .text-shadow-teal {
+    text-shadow:
+      0 0 20px rgba(45, 212, 191, 0.5),
+      0 0 40px rgba(45, 212, 191, 0.3);
+  }
+
+  /* ========================================
+     GLOW EFFECTS
+     ======================================== */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, #7c3aed, #14b8a6, #ec4899, #7c3aed);
+    background-size: 400% 400%;
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    animation: glow-rotate 3s linear infinite;
+    filter: blur(10px);
+  }
+
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+
+  @keyframes glow-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ========================================
+     IMAGE EFFECTS
+     ======================================== */
+  .img-glow {
+    @apply relative overflow-hidden rounded-xl;
+    transition: all 0.5s ease;
+  }
+
+  .img-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .img-glow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    border-radius: inherit;
+    transition: border-color 0.5s ease;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .img-glow:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.3);
+  }
+
+  .img-glow:hover::before {
+    opacity: 1;
+  }
+
+  .img-glow:hover::after {
+    border-color: rgba(168, 85, 247, 0.5);
+  }
+
+  /* ========================================
+     SHIMMER & LOADING
+     ======================================== */
+  .shimmer {
+    @apply relative overflow-hidden;
+    background: linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 40%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 60%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .skeleton {
+    @apply bg-cave-light/50 rounded animate-pulse;
+  }
+
+  /* ========================================
+     PRICE TAG
+     ======================================== */
+  .price-tag {
+    @apply text-2xl font-bold;
+    background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #0d9488 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 4px rgba(45, 212, 191, 0.3));
+  }
+
+  /* ========================================
+     BADGES
+     ======================================== */
+  .badge {
+    @apply inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold;
+    @apply bg-crystal-purple/20 text-crystal-purple-light border border-crystal-purple/30;
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .badge:hover {
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.4);
+    transform: scale(1.05);
+  }
+
+  .badge-live {
+    @apply bg-red-500/20 text-red-400 border-red-500/40;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+
+  .badge-live::before {
+    content: '';
+    @apply w-2 h-2 rounded-full bg-red-500 mr-2;
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse-live {
+    0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.5); }
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ========================================
+     FLOATING ANIMATION
+     ======================================== */
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(2deg); }
+    75% { transform: translateY(5px) rotate(-2deg); }
+  }
+
+  .float-delayed {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: -3s;
+  }
+
+  /* ========================================
+     MAGNETIC HOVER
+     ======================================== */
+  .magnetic {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .magnetic:hover {
+    transform: perspective(1000px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg)) scale(1.05);
+  }
+
+  /* ========================================
+     REVEAL ANIMATIONS
+     ======================================== */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: reveal-up 0.8s ease forwards;
+  }
+
+  @keyframes reveal-up {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .reveal-scale {
+    opacity: 0;
+    transform: scale(0.9);
+    animation: reveal-scale 0.6s ease forwards;
+  }
+
+  @keyframes reveal-scale {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* ========================================
+     SPARKLE CURSOR
+     ======================================== */
+  .sparkle-cursor {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%237c3aed' d='M16 0l2 12 12 2-12 2-2 12-2-12L2 14l12-2z'/%3E%3C/svg%3E") 16 16, pointer;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but allow scrolling */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Backdrop blur fallback */
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass {
+      background: rgba(26, 26, 46, 0.95);
+    }
+  }
+
+  /* Perspective for 3D effects */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  /* Line clamp */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

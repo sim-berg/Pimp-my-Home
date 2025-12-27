@@ -1,0 +1,39 @@
+version: '3.8'
+
+# Development overrides - use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  medusa:
+    build:
+      context: ../medusa-server
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ../medusa-server:/server
+      - /server/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+
+  storefront:
+    build:
+      context: ../storefront
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ../storefront:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
+    command: npm run dev
+
+  # Enable Twitch service in dev
+  twitch-service:
+    profiles: []
+    build:
+      context: ../twitch-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ../twitch-service:/app
+      - /app/node_modules
+    command: npm run dev
