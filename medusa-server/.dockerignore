@@ -8,9 +8,10 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 *.md
+!README.md
 .vscode
 .idea
 coverage
 .cache
-dist
 .medusa
+uploads

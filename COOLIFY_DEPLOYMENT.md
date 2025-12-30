@@ -152,7 +152,7 @@ Click "Deploy" in Coolify. The deployment process will:
 - Verify `POSTGRES_PASSWORD` is set correctly
 - Check service dependencies in docker-compose.yml
 
-### Medusa Build Fails
+### Medusa Build Fails - CLI Issues
 
 **Error**: `ERR_INVALID_ARG_TYPE` or `cmd is not a function`
 
@@ -160,6 +160,17 @@ Click "Deploy" in Coolify. The deployment process will:
 - Ensure `@medusajs/cli` is in dependencies (not `@medusajs/medusa-cli`)
 - Check package.json in medusa-server directory
 - Rebuild the medusa service
+
+### Medusa Build Fails - Environment Variables
+
+**Error**: `process "/bin/sh -c npm run build" did not complete successfully`
+
+**Cause**: Medusa build validates config which requires DATABASE_URL and REDIS_URL
+
+**Solution**: Already fixed in updated files:
+- `medusa-config.ts` now has default values
+- Dockerfile sets placeholder environment variables during build
+- Runtime environment variables override placeholders
 
 ### Frontend Shows ECONNREFUSED
 

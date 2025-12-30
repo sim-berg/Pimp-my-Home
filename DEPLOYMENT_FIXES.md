@@ -85,21 +85,70 @@ storefront:
 
 ---
 
+## Issue 4: Medusa Build Fails - Missing Environment Variables ✓ FIXED
+
+**Error**: `process "/bin/sh -c npm run build" did not complete successfully: exit code: 1`
+
+**Root Cause**:
+1. `medusa build` validates the medusa-config.ts during build
+2. Config requires `DATABASE_URL` and `REDIS_URL` but they weren't set during Docker build
+3. These variables are only available at runtime from docker-compose
+
+**Solution**: Two-part fix:
+
+1. **Updated medusa-config.ts** - Added defaults:
+```typescript
+// Before
+databaseUrl: process.env.DATABASE_URL,
+redisUrl: process.env.REDIS_URL,
+
+// After
+databaseUrl: process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/medusa-store",
+redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
+```
+
+2. **Updated Dockerfile** - Added placeholder environment variables:
+```dockerfile
+# Set placeholder environment variables for build
+ENV DATABASE_URL="postgres://placeholder:placeholder@localhost:5432/placeholder"
+ENV REDIS_URL="redis://localhost:6379"
+ENV NODE_ENV="production"
+
+# Build the application
+RUN npm run build
+```
+
+**Why This Works**:
+- Build-time placeholders satisfy Medusa's config validation
+- Runtime environment variables (from docker-compose) override placeholders
+- Defaults in config prevent undefined values
+
+**Files Modified**:
+- `medusa-server/medusa-config.ts`
+- `medusa-server/Dockerfile`
+- `medusa-server/.dockerignore`
+
+---
+
 ## Optimizations Applied
 
-### 1. Multi-Stage Docker Builds
+### 1. Docker Build Improvements
 
-**Medusa Server**: Converted to multi-stage build for better caching:
+**Medusa Server**: Single-stage build with:
+- Alpine Linux base (smaller image)
+- Layer caching for dependencies
+- Build-time environment variable placeholders
+- Proper .dockerignore to exclude unnecessary files
+
+**Storefront**: Multi-stage build with:
 - Stage 1 (deps): Install dependencies
-- Stage 2 (builder): Build application
+- Stage 2 (builder): Build application with proper env vars
 - Stage 3 (runner): Production runtime (smaller image)
-
-**Storefront**: Already using multi-stage, improved with proper build args.
 
 **Benefits**:
 - Faster builds (better layer caching)
 - Smaller production images
-- More secure (fewer build tools in final image)
+- Build-time configuration validation
 
 ### 2. Created .dockerignore Files
 
