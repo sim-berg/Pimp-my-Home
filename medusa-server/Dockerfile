@@ -8,8 +8,9 @@ RUN apk add --no-cache python3 make g++ libc6-compat
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install ALL dependencies including devDependencies (needed for build)
+# NODE_ENV=development ensures devDependencies like typescript are installed
+RUN NODE_ENV=development npm install --legacy-peer-deps
 
 # Copy source code and config
 COPY . .
