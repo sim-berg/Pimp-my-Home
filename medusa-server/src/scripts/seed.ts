@@ -1,4 +1,5 @@
 import { ExecArgs } from "@medusajs/framework/types"
+import { ProductStatus } from "@medusajs/framework/utils"
 
 export default async function seed({ container }: ExecArgs) {
   const logger = container.resolve("logger")
@@ -10,7 +11,6 @@ export default async function seed({ container }: ExecArgs) {
   const regionService = container.resolve("region")
   const salesChannelService = container.resolve("sales_channel")
   const stockLocationService = container.resolve("stock_location")
-  const inventoryService = container.resolve("inventory")
 
   logger.info("Creating regions...")
 
@@ -55,7 +55,15 @@ export default async function seed({ container }: ExecArgs) {
   logger.info("Creating product categories...")
 
   // Create product categories
-  const categoryService = container.resolve("product_category")
+  const categoryService = container.resolve("product_category") as {
+    createProductCategories: (data: Array<{
+      name: string
+      handle: string
+      description: string
+      is_active: boolean
+    }>) => Promise<unknown[]>
+  }
+
   const categories = await categoryService.createProductCategories([
     {
       name: "Crystals",
@@ -91,7 +99,7 @@ export default async function seed({ container }: ExecArgs) {
       title: "Amethyst Crystal Cluster",
       handle: "amethyst-crystal-cluster",
       description: "A stunning 3D printed amethyst cluster that captures the mystical beauty of real crystals. Features intricate geometric patterns and a translucent purple finish that glows beautifully in ambient light.",
-      status: "published",
+      status: ProductStatus.PUBLISHED,
       images: [
         { url: "https://images.unsplash.com/photo-1567225591450-06036b3392a6?w=800" },
       ],
@@ -136,7 +144,7 @@ export default async function seed({ container }: ExecArgs) {
       title: "Crystal Cave Lamp",
       handle: "crystal-cave-lamp",
       description: "Transform your space into a mystical crystal cave with this stunning LED lamp. Features a geode-inspired design with internal lighting that creates an enchanting glow effect.",
-      status: "published",
+      status: ProductStatus.PUBLISHED,
       images: [
         { url: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800" },
       ],
@@ -181,7 +189,7 @@ export default async function seed({ container }: ExecArgs) {
       title: "Dragon Guardian Figurine",
       handle: "dragon-guardian-figurine",
       description: "A majestic dragon figurine guarding a crystal treasure. Intricately detailed with scales, wings, and glowing crystal eyes. Perfect for fantasy lovers and collectors.",
-      status: "published",
+      status: ProductStatus.PUBLISHED,
       images: [
         { url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800" },
       ],
@@ -216,7 +224,7 @@ export default async function seed({ container }: ExecArgs) {
       title: "Floating Crystal Shelf",
       handle: "floating-crystal-shelf",
       description: "A geometric floating shelf inspired by crystal formations. Perfect for displaying your treasures, plants, or other mystical items. Features a unique angular design.",
-      status: "published",
+      status: ProductStatus.PUBLISHED,
       images: [
         { url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800" },
       ],
@@ -251,7 +259,7 @@ export default async function seed({ container }: ExecArgs) {
       title: "Teal Quartz Cluster",
       handle: "teal-quartz-cluster",
       description: "A beautiful teal-colored quartz cluster that brings ocean vibes to your space. Features sharp, geometric crystal points with a stunning translucent finish.",
-      status: "published",
+      status: ProductStatus.PUBLISHED,
       images: [
         { url: "https://images.unsplash.com/photo-1551122089-4e3e72477432?w=800" },
       ],
@@ -295,7 +303,7 @@ export default async function seed({ container }: ExecArgs) {
       title: "Crystal Moon Lamp",
       handle: "crystal-moon-lamp",
       description: "A stunning moon-shaped lamp covered in crystal formations. Changes colors with touch control and creates an ethereal ambiance in any room.",
-      status: "published",
+      status: ProductStatus.PUBLISHED,
       images: [
         { url: "https://images.unsplash.com/photo-1532009877282-3340270e0529?w=800" },
       ],
@@ -340,10 +348,11 @@ export default async function seed({ container }: ExecArgs) {
   // Create products
   for (const productData of products) {
     try {
-      await productService.createProducts(productData)
+      await productService.createProducts([productData])
       logger.info(`Created product: ${productData.title}`)
-    } catch (error) {
-      logger.error(`Failed to create product ${productData.title}:`, error)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      logger.error(`Failed to create product ${productData.title}: ${errorMessage}`)
     }
   }
 

@@ -1,8 +1,24 @@
 import { AbstractPaymentProvider } from "@medusajs/framework/utils"
 import { Polar } from "@polar-sh/sdk"
 import type {
-  CreatePaymentProviderSession,
-  UpdatePaymentProviderSession,
+  InitiatePaymentInput,
+  InitiatePaymentOutput,
+  AuthorizePaymentInput,
+  AuthorizePaymentOutput,
+  CapturePaymentInput,
+  CapturePaymentOutput,
+  RefundPaymentInput,
+  RefundPaymentOutput,
+  CancelPaymentInput,
+  CancelPaymentOutput,
+  DeletePaymentInput,
+  DeletePaymentOutput,
+  GetPaymentStatusInput,
+  GetPaymentStatusOutput,
+  RetrievePaymentInput,
+  RetrievePaymentOutput,
+  UpdatePaymentInput,
+  UpdatePaymentOutput,
   ProviderWebhookPayload,
   WebhookActionResult,
 } from "@medusajs/framework/types"
@@ -37,8 +53,8 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Initialize a payment session with Polar
    */
   async initiatePayment(
-    input: CreatePaymentProviderSession
-  ): Promise<{ data: PolarSessionData }> {
+    input: InitiatePaymentInput
+  ): Promise<InitiatePaymentOutput> {
     const { amount, currency_code, context } = input
 
     try {
@@ -54,18 +70,20 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
       })
 
       return {
+        id: checkout.id,
         data: {
           checkoutId: checkout.id,
           checkoutUrl: checkout.url,
           status: "pending",
-        },
+        } as PolarSessionData,
       }
     } catch (error) {
       console.error("Polar payment initiation failed:", error)
       return {
+        id: `polar_${Date.now()}`,
         data: {
           status: "failed",
-        },
+        } as PolarSessionData,
       }
     }
   }
@@ -74,8 +92,8 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Update an existing payment session
    */
   async updatePayment(
-    input: UpdatePaymentProviderSession
-  ): Promise<{ data: PolarSessionData }> {
+    input: UpdatePaymentInput
+  ): Promise<UpdatePaymentOutput> {
     // Polar doesn't support updating existing checkouts
     // Return existing data
     return {
@@ -87,13 +105,14 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Delete a payment session
    */
   async deletePayment(
-    paymentSessionData: PolarSessionData
-  ): Promise<{ data: PolarSessionData }> {
+    input: DeletePaymentInput
+  ): Promise<DeletePaymentOutput> {
+    const sessionData = input.data as PolarSessionData
     return {
       data: {
-        ...paymentSessionData,
+        ...sessionData,
         status: "canceled",
-      },
+      } as PolarSessionData,
     }
   }
 
@@ -101,14 +120,15 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Authorize the payment
    */
   async authorizePayment(
-    paymentSessionData: PolarSessionData
-  ): Promise<{ status: string; data: PolarSessionData }> {
+    input: AuthorizePaymentInput
+  ): Promise<AuthorizePaymentOutput> {
+    const sessionData = input.data as PolarSessionData
     return {
       status: "authorized",
       data: {
-        ...paymentSessionData,
+        ...sessionData,
         status: "authorized",
-      },
+      } as PolarSessionData,
     }
   }
 
@@ -116,13 +136,14 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Capture the authorized payment
    */
   async capturePayment(
-    paymentSessionData: PolarSessionData
-  ): Promise<{ data: PolarSessionData }> {
+    input: CapturePaymentInput
+  ): Promise<CapturePaymentOutput> {
+    const sessionData = input.data as PolarSessionData
     return {
       data: {
-        ...paymentSessionData,
+        ...sessionData,
         status: "captured",
-      },
+      } as PolarSessionData,
     }
   }
 
@@ -130,13 +151,13 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Refund a captured payment
    */
   async refundPayment(
-    paymentSessionData: PolarSessionData,
-    refundAmount: number
-  ): Promise<{ data: PolarSessionData }> {
+    input: RefundPaymentInput
+  ): Promise<RefundPaymentOutput> {
+    const sessionData = input.data as PolarSessionData
     // Implement Polar refund logic here
-    console.log(`Refunding ${refundAmount} for checkout ${paymentSessionData.checkoutId}`)
+    console.log(`Refunding ${input.amount} for checkout ${sessionData.checkoutId}`)
     return {
-      data: paymentSessionData,
+      data: sessionData,
     }
   }
 
@@ -144,13 +165,14 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Cancel an authorized payment
    */
   async cancelPayment(
-    paymentSessionData: PolarSessionData
-  ): Promise<{ data: PolarSessionData }> {
+    input: CancelPaymentInput
+  ): Promise<CancelPaymentOutput> {
+    const sessionData = input.data as PolarSessionData
     return {
       data: {
-        ...paymentSessionData,
+        ...sessionData,
         status: "canceled",
-      },
+      } as PolarSessionData,
     }
   }
 
@@ -158,19 +180,23 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
    * Get the status of a payment
    */
   async getPaymentStatus(
-    paymentSessionData: PolarSessionData
-  ): Promise<string> {
-    return paymentSessionData.status
+    input: GetPaymentStatusInput
+  ): Promise<GetPaymentStatusOutput> {
+    const sessionData = input.data as PolarSessionData
+    return {
+      status: sessionData.status,
+    }
   }
 
   /**
    * Retrieve the payment data
    */
   async retrievePayment(
-    paymentSessionData: PolarSessionData
-  ): Promise<{ data: PolarSessionData }> {
+    input: RetrievePaymentInput
+  ): Promise<RetrievePaymentOutput> {
+    const sessionData = input.data as PolarSessionData
     return {
-      data: paymentSessionData,
+      data: sessionData,
     }
   }
 
@@ -190,13 +216,14 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
         }
 
       case "checkout.updated":
-        const status = (event.data as Record<string, unknown>)?.status
+        const eventData = event.data as Record<string, unknown>
+        const status = eventData?.status
         if (status === "succeeded") {
           return {
             action: "authorized",
             data: {
-              session_id: (event.data as Record<string, unknown>)?.id as string,
-              amount: (event.data as Record<string, unknown>)?.amount as number,
+              session_id: eventData?.id as string,
+              amount: eventData?.amount as number,
             },
           }
         }
@@ -205,10 +232,12 @@ class PolarPaymentProviderService extends AbstractPaymentProvider<PolarOptions> 
         }
 
       case "order.created":
+        const orderData = event.data as Record<string, unknown>
         return {
           action: "captured",
           data: {
-            session_id: (event.data as Record<string, unknown>)?.checkout_id as string,
+            session_id: orderData?.checkout_id as string,
+            amount: orderData?.amount as number,
           },
         }
 
